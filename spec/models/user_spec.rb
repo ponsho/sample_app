@@ -63,28 +63,55 @@ describe User do
   end
   it { should_not be_valid }
 end
- describe "with a password that's too short" do
+
+  describe "with a password that's too short" do
     before { @user.password = @user.password_confirmation = "a" * 5 }
     it { should be_invalid }
   end
 
-describe "when password doesn't match confirmation" do
-  before { @user.password_confirmation = "mismatch" }
-  it { should_not be_valid }
-end
-describe "return value of authenticate method" do
-  before { @user.save }
-  let(:found_user) { User.find_by(email: @user.email) }
-
-  describe "with valid password" do
-    it { should eq found_user.authenticate(@user.password) }
+  describe "when password doesn't match confirmation" do
+    before { @user.password_confirmation = "mismatch" }
+    it { should_not be_valid }
   end
 
-  describe "with invalid password" do
-    let(:user_for_invalid_password) { found_user.authenticate("invalid") }
+  describe "return value of authenticate method" do
+    before { @user.save }
+    let(:found_user) { User.find_by(email: @user.email) }
 
-    it { should_not eq user_for_invalid_password }
-    specify { expect(user_for_invalid_password).to be_false }
+    describe "with valid password" do
+      it { should eq found_user.authenticate(@user.password) }
+    end
+
+    describe "with invalid password" do
+      let(:user_for_invalid_password) { found_user.authenticate("invalid") }
+      it { should_not eq user_for_invalid_password }
+      specify { expect(user_for_invalid_password).to be_false }
+    end
   end
-end
+
+ describe "signup" do
+
+    before { visit signup_path }
+
+    let(:submit) { "Create my account" }
+
+    describe "with invalid information" do
+      it "should not create a user" do
+        expect { click_button submit }.not_to change(User, :count)
+      end
+    end
+
+    describe "with valid information" do
+      before do
+        fill_in "Name",         with: "Example User"
+        fill_in "Email",        with: "user@example.com"
+        fill_in "Password",     with: "foobar"
+        fill_in "Confirmation", with: "foobar"
+      end
+
+      it "should create a user" do
+        expect { click_button submit }.to change(User, :count).by(1)
+      end
+    end
+  end
 end
